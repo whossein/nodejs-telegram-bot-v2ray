@@ -1,0 +1,7 @@
+node_modules
+package-lock.json
+*.js
+yarn.lock
+./yarn.lock
+./package-lock.json
+# Keep environment variables out of version control
