@@ -32,32 +32,32 @@ if (isTestEnv) {
 const token = "6291644750:AAFBLJOkGRYq4o44pt1fiRfvXMQWbfwX7dw";
 const options: TelegramBot.ConstructorOptions = { polling: true };
 
-// options.request = {
-//   url: "",
-//   proxy: `http://localhost:8889`,
-// };
-
-const agent = new SocksProxyAgent({
-  hostname: "localhost",
-  port: "1089",
-  type: 5, // socks5
-  protocol: "socks",
-});
 options.request = {
   url: "",
-  agent,
+  proxy: `http://localhost:10809`,
 };
+
+// const agent = new SocksProxyAgent({
+//   hostname: "localhost",
+//   port: "1089",
+//   type: 5, // socks5
+//   protocol: "socks",
+// });
+// options.request = {
+//   url: "",
+//   agent,
+// };
 // https://github.com/hosein2398/node-telegram-bot-api-tutorial
 
 const bot = new TelegramBot(token, options);
 
-bot.on("message", (msg) => {
-  console.log("--------msg-------");
-  console.log(msg);
-  console.log("------------------");
+// bot.on("message", (msg) => {
+//   console.log("--------msg-------");
+//   console.log(msg);
+//   console.log("------------------");
 
-  // bot.sendMessage(msg.chat.id, "hello");
-});
+//   // bot.sendMessage(msg.chat.id, "hello");
+// });
 
 // bot.onText(/\/add/, async (msg) => {
 //   console.log("add");
@@ -67,11 +67,10 @@ bot.on("message", (msg) => {
 // });
 
 bot.onText(/\/get (.+)/, async (msg, match) => {
-  console.log("get");
   console.log(match, "match");
 
-  if (match && match[0]) {
-    let res = await FetchInboundById(match[0]);
+  if (match && match[1]) {
+    let res = await FetchInboundById(match[1]);
     bot.sendMessage(msg.chat.id, res);
   }
   console.log("--------------");
@@ -164,14 +163,17 @@ const FetchInboundById = async function (uri: string) {
 
   const isTrojan = uri.search("trojan://") >= 0;
 
-  console.log(isTrojan, "isTrojan");
+  // console.log(isTrojan, "isTrojan");
 
   if (isTrojan && uri.search("@") >= 0) {
     trojanPassword = uri.replace("trojan://", "").split("@")[0];
+  } else {
+    return "not trojan!";
   }
 
   try {
     await sequelize.authenticate();
+    await sequelize.sync();
     // trojan://OLYA6HkKGe@asia.netbros.ir:31690?type=tcp&security=tls#name
 
     let allData = await Inblounds.findAll();
@@ -200,16 +202,16 @@ const FetchInboundById = async function (uri: string) {
       let remainigTotal = clientObj?.total / 1024 / 1024 + " mb";
 
       result = `
-uri: ${uri}
+remainig:
 ${remainigDays}
 ${remainigTotal}
       `;
     }
   } catch (error) {
-    result = "error!";
     console.log(error);
+    return "Error! 500";
   } finally {
-    sequelize.close();
+    // sequelize.close();
   }
 
   return result;
