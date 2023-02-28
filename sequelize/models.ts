@@ -1,11 +1,51 @@
-import { Sequelize, Model, DataTypes } from "sequelize";
+import {
+  Sequelize,
+  Model,
+  DataTypes,
+  InferAttributes,
+  InferCreationAttributes,
+  CreationOptional,
+} from "sequelize";
 
 export const sequelize = new Sequelize({
   dialect: "sqlite",
-  storage: "C:/Users/Hossein/Desktop/x-ui.db",
+  storage: "./x.db",
 });
 
-export const Inblounds = sequelize.define(
+interface UserModel
+  extends Model<
+    InferAttributes<UserModel>,
+    InferCreationAttributes<UserModel>
+  > {
+  // Some fields are optional when calling UserModel.create() or UserModel.build()
+  id: CreationOptional<number>;
+  user_id: number;
+  up: number;
+  down: number;
+  total: number;
+  remark: string;
+  enable: boolean;
+  expiry_time: number;
+  listen: string;
+  port: number;
+  protocol: string;
+  settings:
+    | string
+    | {
+        client: {
+          password: string;
+          email: string;
+          flow: string;
+          total: number;
+        }[];
+        fallbacks: [];
+      };
+  stream_settings: any;
+  tag: string; // uniquie
+  sniffing: any;
+}
+
+export const Inblounds = sequelize.define<UserModel>(
   "inbounds",
   {
     id: {
