@@ -43,33 +43,34 @@ export function runTelegramBot() {
   // });
 
   bot.onText(/\/get (.+)/, async (msg, match) => {
-    console.log(match, "match");
+    // console.log(match, "match");
+    console.log("--------------");
 
     if (match && match[1]) {
-      // let res = await FetchInboundById(match[1]);
-      // bot.sendMessage(msg.chat.id, res);
+      let res = await FetchInboundById(match[1]);
+      bot.sendMessage(msg.chat.id, res);
     }
     console.log("--------------");
   });
 
-  bot.onText(/\/list/, async (msg) => {
-    console.log("list");
+  // bot.onText(/\/list/, async (msg) => {
+  //   console.log("list");
 
-    let list;
-    try {
-      // await sequelize.authenticate();
+  //   let list;
+  //   try {
+  //     // await sequelize.authenticate();
 
-      list = await Inblounds.findAll();
-      // console.log(newInbound);
-    } catch (error) {
-      console.log(error);
-    } finally {
-      // await sequelize.co
-    }
+  //     list = await Inblounds.findAll();
+  //     // console.log(newInbound);
+  //   } catch (error) {
+  //     console.log(error);
+  //   } finally {
+  //     // await sequelize.co
+  //   }
 
-    bot.sendMessage(msg.chat.id, "list");
-    console.log("--------");
-  });
+  //   bot.sendMessage(msg.chat.id, "list");
+  //   console.log("--------");
+  // });
 
   bot.on("polling_error", (msg) => console.log(msg));
 }

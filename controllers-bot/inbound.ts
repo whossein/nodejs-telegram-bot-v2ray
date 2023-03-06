@@ -90,8 +90,13 @@ const FetchInboundById = async function (uri: string) {
         }
       }
 
-      if (uriObj.type === "vless") {
-        console.log(item);
+      if (uriObj.type === "vless" && typeof item.settings === "string") {
+        settings = JSON.parse(item.settings);
+        const clients = settings.clients;
+
+        if (clients.find((j: any) => j.id === uriObj.password)) {
+          clientObj = item;
+        }
       }
     });
 
@@ -127,6 +132,10 @@ function printResult(item: InboundModel): string {
     result.remainigDay = "اتمام زمان بسته";
   } else {
     result.remainigDay = remainigDays * -1 + " روز مانده";
+  }
+
+  if (item.expiry_time.toString() === "0") {
+    result.remainigDay = "بدون محدودیت";
   }
 
   result.totalPackage = byteToUserFirendly(item.total);
