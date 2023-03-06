@@ -13,12 +13,12 @@ export const sequelize = new Sequelize({
   storage: storagePath,
 });
 
-interface UserModel
+export interface InboundModel
   extends Model<
-    InferAttributes<UserModel>,
-    InferCreationAttributes<UserModel>
+    InferAttributes<InboundModel>,
+    InferCreationAttributes<InboundModel>
   > {
-  // Some fields are optional when calling UserModel.create() or UserModel.build()
+  // Some fields are optional when calling InboundModel.create() or InboundModel.build()
   id: CreationOptional<number>;
   user_id: number;
   up: number;
@@ -46,7 +46,7 @@ interface UserModel
   sniffing: any;
 }
 
-export const Inblounds = sequelize.define<UserModel>(
+export const Inblounds = sequelize.define<InboundModel>(
   "inbounds",
   {
     id: {

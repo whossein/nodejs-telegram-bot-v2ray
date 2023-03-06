@@ -1,10 +1,16 @@
 import bodyParser from "body-parser";
 import errorhandler from "errorhandler";
-import express, { Express } from "express";
+import express, { Express, Response, Request } from "express";
 import morgan from "morgan";
 // import { appRoute } from "./routes";
 import cors from "cors";
-import { inLocal, isTestEnv, needTelegramBot } from "./config/constant";
+import {
+  ExampleTrojan,
+  ExampleVless,
+  inLocal,
+  isTestEnv,
+  needTelegramBot,
+} from "./config/constant";
 import { runTelegramBot } from "./controllers-bot/bot";
 import { FetchInboundById } from "./controllers-bot/inbound";
 
@@ -22,10 +28,12 @@ if (isTestEnv) {
   app.use(errorhandler());
 }
 
-// app.get("/", async (req: Request, res: Response) => {
-//   await FetchInboundById();
-//   return res.send("you can, but you do");
-// });
+app.get("/", async (req: Request, res: Response) => {
+  let msg = await FetchInboundById(ExampleVless);
+  console.log(msg);
+
+  res.send(msg);
+});
 // app.use(appRoute);
 
 if (needTelegramBot) {
@@ -36,9 +44,9 @@ if (inLocal && !needTelegramBot) {
   const port = process.env.PORT || 4000;
   app.listen(process.env.PORT || 4000, async function () {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
-    const res = await FetchInboundById(
-      "trojan://OLYA6HkKGe@asia.netbros.ir:31690?type=tcp&security=tls#name"
-    );
-    console.log(res);
+
+    // const res = await FetchInboundById(ExampleTrojan);
+
+    // console.log(res);
   });
 }

@@ -1,6 +1,10 @@
-import { Inblounds, sequelize } from "../sequelize/models";
+import { Inblounds, InboundModel, sequelize } from "../sequelize/models";
 import moment from "moment";
-import { generateOTP } from "../helper/helper";
+import {
+  byteToUserFirendly,
+  generateOTP,
+  getUriObject,
+} from "../helper/helper";
 import { v4 as uuidv4 } from "uuid";
 import { SocksProxyAgent } from "socks-proxy-agent";
 
@@ -59,61 +63,44 @@ const AddInblound = async (msg: any) => {
 };
 
 const FetchInboundById = async function (uri: string) {
-  let trojanPassword = "";
+  let uriObj = getUriObject(uri);
+
+  if (!uriObj.type || !uriObj.password) {
+    return "uri is not valid!";
+  }
+
   let result = "";
-  let clientObj;
-
-  // console.log("uri", uri);
-
-  if (!uri) {
-    return "not uri!";
-  }
-
-  const isTrojan = uri.search("trojan://") >= 0;
-
-  // console.log(isTrojan, "isTrojan");
-
-  if (isTrojan && uri.search("@") >= 0) {
-    trojanPassword = uri.replace("trojan://", "").split("@")[0];
-  } else {
-    return "not trojan!";
-  }
+  let clientObj: InboundModel | undefined;
 
   try {
     await sequelize.authenticate();
     await sequelize.sync();
-    // trojan://OLYA6HkKGe@asia.netbros.ir:31690?type=tcp&security=tls#name
 
     let allData = await Inblounds.findAll();
 
-    allData.forEach((item) => {
-      // @ts-ignore
-      const s = JSON.parse(item.settings);
+    allData.forEach((item: InboundModel) => {
+      let settings;
 
-      const clients = s.clients;
-      // @ts-ignore
-      if (isTrojan && clients.find((j) => j.password === trojanPassword)) {
-        clientObj = item;
-        result = "find!";
+      if (uriObj.type === "trojan" && typeof item.settings === "string") {
+        settings = JSON.parse(item.settings);
+        const clients = settings.clients;
+
+        if (clients.find((j: any) => j.password === uriObj.password)) {
+          clientObj = item;
+        }
+      }
+
+      if (uriObj.type === "vless") {
+        console.log(item);
       }
     });
 
     if (!clientObj) {
-      result = "not found!";
+      result = "uri not found!";
     }
 
     if (clientObj) {
-      let remainigDays =
-        // @ts-ignore
-        moment().diff(clientObj?.expiry_time, "d") * -1 + " days";
-      //@ts-ignore
-      let remainigTotal = clientObj?.total / 1024 / 1024 + " mb";
-
-      result = `
-remainig:
-${remainigDays}
-${remainigTotal}
-      `;
+      result = printResult(clientObj);
     }
   } catch (error) {
     console.log(error);
@@ -125,12 +112,35 @@ ${remainigTotal}
   return result;
 };
 
-// function printResult() {
-//   return `⬇️ دانلود: ۳۲.۱ گیگابایت
-//   ⬆️ آپلود: ۷.۲۱ گیگابایت
-//   📦 حجم کل بسته: ۴۰ گیگابایت
-//   حجم باقیمانده: ۲۰۰ مگابایت
-//   ⏰ زمان: ۱۷ روز مانده`;
-// }
+function printResult(item: InboundModel): string {
+  let result = {
+    remainigDay: "",
+    upload: "",
+    download: "",
+    remainingPackage: "",
+    totalPackage: "",
+  };
+
+  // days
+  let remainigDays = moment().diff(item.expiry_time, "d");
+  if (remainigDays > 0) {
+    result.remainigDay = "اتمام زمان بسته";
+  } else {
+    result.remainigDay = remainigDays * -1 + " روز مانده";
+  }
+
+  result.totalPackage = byteToUserFirendly(item.total);
+  result.download = byteToUserFirendly(item.down);
+  result.upload = byteToUserFirendly(item.up);
+
+  let remainigPackageSize = item.total - (item.up + item.down);
+  result.remainingPackage = byteToUserFirendly(remainigPackageSize);
+
+  return `⬇️ دانلود: ${result.download}
+⬆️ آپلود: ${result.upload}
+📦 حجم کل بسته: ${result.totalPackage}
+📦 حجم باقیمانده: ${result.remainingPackage} 
+⏰ زمان: ${result.remainigDay}`;
+}
 
 export { AddInblound, FetchInboundById };

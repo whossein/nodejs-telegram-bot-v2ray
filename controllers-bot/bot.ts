@@ -46,8 +46,8 @@ export function runTelegramBot() {
     console.log(match, "match");
 
     if (match && match[1]) {
-      let res = await FetchInboundById(match[1]);
-      bot.sendMessage(msg.chat.id, res);
+      // let res = await FetchInboundById(match[1]);
+      // bot.sendMessage(msg.chat.id, res);
     }
     console.log("--------------");
   });
