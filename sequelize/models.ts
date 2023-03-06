@@ -6,10 +6,11 @@ import {
   InferCreationAttributes,
   CreationOptional,
 } from "sequelize";
+import { storagePath } from "../config/constant";
 
 export const sequelize = new Sequelize({
   dialect: "sqlite",
-  storage: "./x.db",
+  storage: storagePath,
 });
 
 interface UserModel

@@ -4,10 +4,9 @@ const devModes = {
 };
 export const isTestEnv = process.env.DEV_MODE === devModes.DEVELOPMENT;
 
-export const UserType = {
-  Banned: "Banned",
-  Normal: "Normal",
-  NormalHamkar: "Normal_Hamkar",
-  Admin: "Admin",
-  Test: "Test",
-};
+export const botToken = "6291644750:AAFBLJOkGRYq4o44pt1fiRfvXMQWbfwX7dw";
+
+export const inLocal = true;
+export const needTelegramBot = false;
+
+export const storagePath = inLocal ? "./x.db" : "/etc/x-ui/x-ui.db";
