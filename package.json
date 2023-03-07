@@ -2,10 +2,10 @@
   "name": "nodejs-test",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
     "build": "npx tsc",
-    "start": "node dist/index.js",
+    "start": "node ./index.js",
     "dev": "NODE_ENV=development && concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\""
   },
   "author": "hossein",
