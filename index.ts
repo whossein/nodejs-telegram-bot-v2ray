@@ -10,12 +10,20 @@ import {
   needTelegramBot,
   port,
 } from "./config/constant";
-import { runTelegramBot } from "./controllers-bot/bot";
+import { getUriData, runTelegramBot } from "./controllers-bot/bot";
 import { FetchInboundById } from "./controllers-bot/inbound";
+import { getUriObject } from "./helper/helper";
 
 const app: Express = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
+
 app.use(morgan("dev"));
 app.use(bodyParser.json({ limit: "50mb", type: "application/json" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
@@ -31,8 +39,22 @@ app.get("/v", async (req: Request, res: Response) => {
     res.send("uri not found1");
     return;
   }
+
   let result = await FetchInboundById(uri);
   res.send(result);
+});
+
+app.get("/t", async (req: Request, res: Response) => {
+  const { uri } = req.query;
+
+  if (typeof uri === "string") {
+    const r = await getUriData(uri);
+
+    res.send(r);
+    return;
+  }
+
+  res.send("uri is  not valid");
 });
 
 if (needTelegramBot) {

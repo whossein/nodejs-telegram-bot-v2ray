@@ -1,5 +1,6 @@
 import TelegramBot from "node-telegram-bot-api";
 import { botToken, inLocal, needTelegramBot } from "../config/constant";
+import { getUriObject } from "../helper/helper";
 import { Inblounds } from "../sequelize/models";
 import { FetchInboundById } from "./inbound";
 
@@ -10,6 +11,34 @@ if (inLocal && needTelegramBot) {
     url: "",
     proxy: `http://localhost:10809`,
   };
+}
+
+export async function getUriData(uri: string) {
+  let result;
+  if (!uri || typeof uri !== "string") {
+    result = "uri not found1";
+    return;
+  }
+
+  try {
+    const uriObj = getUriObject(uri);
+    if (!uriObj.url) {
+      return "uri not valid!";
+    }
+    const url = `http://${uriObj.url}:733/v?uri=${uri}`;
+    console.log(url);
+    const data = await fetch(url).then((r) => {
+      let d = r.text();
+      console.log(d);
+      return d;
+    });
+
+    result = data;
+  } catch {
+    result = "Error";
+  }
+
+  return result;
 }
 
 // const agent = new SocksProxyAgent({
@@ -32,31 +61,34 @@ export function runTelegramBot() {
   }
   const bot = new TelegramBot(botToken, options);
 
-  // bot.on("message", (msg) => {
-  //   console.log("--------msg-------");
-  //   console.log(msg);
-  //   console.log("------------------");
+  bot.on("message", async (msg) => {
+    console.log("-START---------------");
+    console.log(msg);
+    if (msg.text) {
+      let res = await getUriData(msg.text);
+      bot.sendMessage(msg.chat.id, res ? res : "Error! :(");
+    }
+    console.log("-END-----------------");
 
-  //   // bot.sendMessage(msg.chat.id, "hello");
-  // });
+    // bot.sendMessage(msg.chat.id, "hello");
+  });
 
   // bot.onText(/\/add/, async (msg) => {
-  //   console.log("add");
-  //   const newInbound = await AddInblound(msg);
-  //   bot.sendMessage(msg.chat.id, newInbound);
+
+  //   bot.sendMessage(msg.chat.id, "salam");
   //   console.log("--------------");
   // });
 
-  bot.onText(/\/get (.+)/, async (msg, match) => {
-    // console.log(match, "match");
-    console.log("--------------");
+  // bot.onText(/\/get (.+)/, async (msg, match) => {
+  //   // console.log(match, "match");
+  //   console.log("--------------");
 
-    if (match && match[1]) {
-      let res = await FetchInboundById(match[1]);
-      bot.sendMessage(msg.chat.id, res);
-    }
-    console.log("--------------");
-  });
+  //   if (match && match[1]) {
+  //     let res = await FetchInboundById(match[1]);
+  //     bot.sendMessage(msg.chat.id, res);
+  //   }
+  //   console.log("--------------");
+  // });
 
   // bot.onText(/\/list/, async (msg) => {
   //   console.log("list");
