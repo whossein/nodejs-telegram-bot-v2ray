@@ -25,6 +25,11 @@ if (inLocal && needTelegramBot) {
 // https://github.com/hosein2398/node-telegram-bot-api-tutorial
 
 export function runTelegramBot() {
+  if (!botToken || botToken.length == 0) {
+    console.log("botToken not found!", botToken);
+
+    return;
+  }
   const bot = new TelegramBot(botToken, options);
 
   // bot.on("message", (msg) => {

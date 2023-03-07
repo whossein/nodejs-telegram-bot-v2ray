@@ -8,6 +8,7 @@ import {
   inLocal,
   isTestEnv,
   needTelegramBot,
+  port,
 } from "./config/constant";
 import { runTelegramBot } from "./controllers-bot/bot";
 import { FetchInboundById } from "./controllers-bot/inbound";
@@ -25,19 +26,21 @@ if (isTestEnv) {
 }
 
 app.get("/v", async (req: Request, res: Response) => {
-  let msg = await FetchInboundById(ExampleVless);
-  console.log(msg);
-
-  res.send(msg);
+  const { uri } = req.query;
+  if (!uri || typeof uri !== "string") {
+    res.send("uri not found1");
+    return;
+  }
+  let result = await FetchInboundById(uri);
+  res.send(result);
 });
 
 if (needTelegramBot) {
   runTelegramBot();
 }
 
-if (inLocal && !needTelegramBot) {
-  const port = process.env.PORT || 4000;
-  app.listen(process.env.PORT || 4000, async function () {
+if (!needTelegramBot) {
+  app.listen(port, async function () {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
   });
 }

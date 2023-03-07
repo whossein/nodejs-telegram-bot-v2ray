@@ -117,7 +117,7 @@ const FetchInboundById = async function (uri: string) {
   return result;
 };
 
-function printResult(item: InboundModel): string {
+export function printResult(item: InboundModel): string {
   let result = {
     remainigDay: "",
     upload: "",

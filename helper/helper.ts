@@ -11,12 +11,14 @@ export function generateOTP() {
 type TUriResult = {
   type: "vless" | "trojan" | "vmess" | null;
   password: string | null;
+  url: string | null;
 };
 
 export function getUriObject(uri: string): TUriResult {
   let result: TUriResult = {
     type: null,
     password: null,
+    url: null,
   };
 
   if (!uri || uri.search("@") < 0) {
