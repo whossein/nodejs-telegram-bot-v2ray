@@ -1,8 +1,7 @@
+// @ts-nocheck
 import TelegramBot from "node-telegram-bot-api";
 import { botToken, inLocal, needTelegramBot } from "../config/constant";
 import { getUriObject } from "../helper/helper";
-import { Inblounds } from "../sequelize/models";
-import { FetchInboundById } from "./inbound";
 
 const options: TelegramBot.ConstructorOptions = { polling: true };
 
@@ -54,7 +53,7 @@ export async function getUriData(uri: string) {
 // https://github.com/hosein2398/node-telegram-bot-api-tutorial
 
 export function runTelegramBot() {
-  if (!botToken || botToken !== "") {
+  if (!botToken) {
     console.log("botToken not found!", botToken);
 
     return;
@@ -64,13 +63,70 @@ export function runTelegramBot() {
   bot.on("message", async (msg) => {
     console.log("-START---------------");
     console.log(msg);
-    if (msg.text) {
+    if (
+      msg.text &&
+      (msg.text.search("trojan") >= 0 || msg.text.search("vless") >= 0)
+    ) {
       let res = await getUriData(msg.text);
       bot.sendMessage(msg.chat.id, res ? res : "Error! :(");
     }
     console.log("-END-----------------");
 
     // bot.sendMessage(msg.chat.id, "hello");
+  });
+
+  // Matches /love
+  bot.onText(/\/love/, function onLoveText(msg) {
+    const opts = {
+      reply_to_message_id: msg.message_id,
+      reply_markup: JSON.stringify({
+        keyboard: [
+          ["Yes, you are the bot of my life ❤"],
+          ["No, sorry there is another one..."],
+        ],
+      }),
+    };
+
+    // @ts-ignore
+    bot.sendMessage(msg.chat.id, "Do you love me?", opts);
+  });
+
+  // Matches /editable
+  bot.onText(/\/editable/, function onEditableText(msg) {
+    const opts = {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "Edit Text",
+              // we shall check for this value when we listen
+              // for "callback_query"
+              callback_data: "edit",
+            },
+          ],
+        ],
+      },
+    };
+
+    // @ts-ignore
+    bot.sendMessage(msg.from.id, "Original Text", opts);
+  });
+
+  // Handle callback queries
+  bot.on("callback_query", function onCallbackQuery(callbackQuery) {
+    const action = callbackQuery.data;
+    const msg = callbackQuery.message;
+    const opts = {
+      chat_id: msg?.chat.id,
+      message_id: msg?.message_id,
+    };
+    let text;
+
+    if (action === "edit") {
+      text = "Edited Text";
+    }
+
+    bot.editMessageText(text, opts);
   });
 
   // bot.onText(/\/add/, async (msg) => {
