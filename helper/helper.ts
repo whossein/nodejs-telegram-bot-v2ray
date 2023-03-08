@@ -21,18 +21,18 @@ export function getUriObject(uri: string): TUriResult {
     url: null,
   };
 
-  if (!uri || uri.search("@") < 0) {
+  if (!uri) {
     return result;
   }
 
-  if (uri.substring(0, 9) === "trojan://") {
+  if (uri.substring(0, 9) === "trojan://" && uri.search("@") < 0) {
     result.type = "trojan";
     let splitted = uri.replace("trojan://", "").split("@");
     result.password = splitted[0];
     result.url = splitted[1] ? splitted[1].split(":")[0] : null;
   }
 
-  if (uri.substring(0, 8) === "vless://") {
+  if (uri.substring(0, 8) === "vless://" && uri.search("@") < 0) {
     result.type = "vless";
     let splitted = uri.replace("vless://", "").split("@");
     result.password = splitted[0];
@@ -41,9 +41,16 @@ export function getUriObject(uri: string): TUriResult {
 
   if (uri.substring(0, 8) === "vmess://") {
     result.type = "vmess";
-    let splitted = uri.replace("vmess://", "").split("@");
-    result.password = splitted[0];
-    result.url = splitted[1] ? splitted[1].split(":")[0] : null;
+
+    let encodedData = uri.replace("vmess://", "");
+    let buff = Buffer.from(encodedData, "base64");
+    let text = buff.toString("ascii");
+    let data = JSON.parse(text);
+
+    if (typeof data === "object" && data["id"] && data["add"]) {
+      result.password = data["id"];
+      result.url = data["add"];
+    }
   }
 
   return result;

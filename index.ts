@@ -36,7 +36,7 @@ if (isTestEnv) {
 app.get("/v", async (req: Request, res: Response) => {
   const { uri } = req.query;
   if (!uri || typeof uri !== "string") {
-    res.send("uri not found1");
+    res.send("آدرس یافت نشد");
     return;
   }
 
@@ -54,7 +54,7 @@ app.get("/t", async (req: Request, res: Response) => {
     return;
   }
 
-  res.send("uri is  not valid");
+  res.send("آدرس سرور معتبر نمی باشد!");
 });
 
 if (needTelegramBot) {

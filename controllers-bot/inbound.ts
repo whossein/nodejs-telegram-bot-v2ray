@@ -66,7 +66,7 @@ const FetchInboundById = async function (uri: string) {
   let uriObj = getUriObject(uri);
 
   if (!uriObj.type || !uriObj.password) {
-    return "uri is not valid!";
+    return "آدرس سرور معتبر نمی باشد!";
   }
 
   let result = "";
@@ -99,7 +99,7 @@ const FetchInboundById = async function (uri: string) {
         }
       }
 
-      if (uriObj.type === "trojan" && typeof item.settings === "string") {
+      if (uriObj.type === "vmess" && typeof item.settings === "string") {
         settings = JSON.parse(item.settings);
         const clients = settings.clients;
 
@@ -110,7 +110,7 @@ const FetchInboundById = async function (uri: string) {
     });
 
     if (!clientObj) {
-      result = "uri not found!";
+      result = "آدرس سروری یافت نشد!";
     }
 
     if (clientObj) {

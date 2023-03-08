@@ -22,7 +22,7 @@ export async function getUriData(uri: string) {
   try {
     const uriObj = getUriObject(uri);
     if (!uriObj.url) {
-      return "uri not valid!";
+      return "آدرس سرور معتبر نمی باشد!";
     }
     const url = `http://${uriObj.url}:733/v?uri=${uri}`;
     console.log(url);
