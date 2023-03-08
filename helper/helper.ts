@@ -41,7 +41,9 @@ export function getUriObject(uri: string): TUriResult {
 
   if (uri.substring(0, 8) === "vmess://") {
     result.type = "vmess";
-    result.password = uri.replace("vmess://", "").split("@")[0];
+    let splitted = uri.replace("vmess://", "").split("@");
+    result.password = splitted[0];
+    result.url = splitted[1] ? splitted[1].split(":")[0] : null;
   }
 
   return result;

@@ -98,6 +98,15 @@ const FetchInboundById = async function (uri: string) {
           clientObj = item;
         }
       }
+
+      if (uriObj.type === "trojan" && typeof item.settings === "string") {
+        settings = JSON.parse(item.settings);
+        const clients = settings.clients;
+
+        if (clients.find((j: any) => j.id === uriObj.password)) {
+          clientObj = item;
+        }
+      }
     });
 
     if (!clientObj) {
