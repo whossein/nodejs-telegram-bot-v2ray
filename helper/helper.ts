@@ -25,14 +25,14 @@ export function getUriObject(uri: string): TUriResult {
     return result;
   }
 
-  if (uri.substring(0, 9) === "trojan://" && uri.search("@") < 0) {
+  if (uri.substring(0, 9) === "trojan://" && uri.search("@") >= 0) {
     result.type = "trojan";
     let splitted = uri.replace("trojan://", "").split("@");
     result.password = splitted[0];
     result.url = splitted[1] ? splitted[1].split(":")[0] : null;
   }
 
-  if (uri.substring(0, 8) === "vless://" && uri.search("@") < 0) {
+  if (uri.substring(0, 8) === "vless://" && uri.search("@") >= 0) {
     result.type = "vless";
     let splitted = uri.replace("vless://", "").split("@");
     result.password = splitted[0];

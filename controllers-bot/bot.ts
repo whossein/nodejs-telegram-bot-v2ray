@@ -64,11 +64,17 @@ export function runTelegramBot() {
     console.log("-START---------------");
     console.log(msg);
     if (
-      msg.text &&
-      (msg.text.search("trojan") >= 0 || msg.text.search("vless") >= 0)
+      (msg.text &&
+        (msg.text.search("trojan") >= 0 || msg.text.search("vless") >= 0)) ||
+      msg.text.search("vmess") >= 0
     ) {
       let res = await getUriData(msg.text);
       bot.sendMessage(msg.chat.id, res ? res : "Error! :(");
+    } else {
+      bot.sendMessage(
+        msg.chat.id,
+        "با سلام، به بات آزمایشی خوش آمدید، لطفا آدرس سرور را بفرستید :)"
+      );
     }
     console.log("-END-----------------");
 
@@ -76,58 +82,58 @@ export function runTelegramBot() {
   });
 
   // Matches /love
-  bot.onText(/\/love/, function onLoveText(msg) {
-    const opts = {
-      reply_to_message_id: msg.message_id,
-      reply_markup: JSON.stringify({
-        keyboard: [
-          ["Yes, you are the bot of my life ❤"],
-          ["No, sorry there is another one..."],
-        ],
-      }),
-    };
+  // bot.onText(/\/love/, function onLoveText(msg) {
+  //   const opts = {
+  //     reply_to_message_id: msg.message_id,
+  //     reply_markup: JSON.stringify({
+  //       keyboard: [
+  //         ["Yes, you are the bot of my life ❤"],
+  //         ["No, sorry there is another one..."],
+  //       ],
+  //     }),
+  //   };
 
-    // @ts-ignore
-    bot.sendMessage(msg.chat.id, "Do you love me?", opts);
-  });
+  //   // @ts-ignore
+  //   bot.sendMessage(msg.chat.id, "Do you love me?", opts);
+  // });
 
   // Matches /editable
-  bot.onText(/\/editable/, function onEditableText(msg) {
-    const opts = {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: "Edit Text",
-              // we shall check for this value when we listen
-              // for "callback_query"
-              callback_data: "edit",
-            },
-          ],
-        ],
-      },
-    };
+  // bot.onText(/\/editable/, function onEditableText(msg) {
+  //   const opts = {
+  //     reply_markup: {
+  //       inline_keyboard: [
+  //         [
+  //           {
+  //             text: "Edit Text",
+  //             // we shall check for this value when we listen
+  //             // for "callback_query"
+  //             callback_data: "edit",
+  //           },
+  //         ],
+  //       ],
+  //     },
+  //   };
 
-    // @ts-ignore
-    bot.sendMessage(msg.from.id, "Original Text", opts);
-  });
+  //   // @ts-ignore
+  //   bot.sendMessage(msg.from.id, "Original Text", opts);
+  // });
 
   // Handle callback queries
-  bot.on("callback_query", function onCallbackQuery(callbackQuery) {
-    const action = callbackQuery.data;
-    const msg = callbackQuery.message;
-    const opts = {
-      chat_id: msg?.chat.id,
-      message_id: msg?.message_id,
-    };
-    let text;
+  // bot.on("callback_query", function onCallbackQuery(callbackQuery) {
+  //   const action = callbackQuery.data;
+  //   const msg = callbackQuery.message;
+  //   const opts = {
+  //     chat_id: msg?.chat.id,
+  //     message_id: msg?.message_id,
+  //   };
+  //   let text;
 
-    if (action === "edit") {
-      text = "Edited Text";
-    }
+  //   if (action === "edit") {
+  //     text = "Edited Text";
+  //   }
 
-    bot.editMessageText(text, opts);
-  });
+  //   bot.editMessageText(text, opts);
+  // });
 
   // bot.onText(/\/add/, async (msg) => {
 
