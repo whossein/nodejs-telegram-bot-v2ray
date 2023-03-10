@@ -10,7 +10,7 @@ import {
   needTelegramBot,
   port,
 } from "./config/constant";
-import { getUriData, runTelegramBot } from "./controllers-bot/bot";
+import { runTelegramBot } from "./controllers-bot/bot";
 import { FetchInboundById } from "./controllers-bot/inbound";
 import { getUriObject } from "./helper/helper";
 
@@ -48,9 +48,9 @@ app.get("/t", async (req: Request, res: Response) => {
   const { uri } = req.query;
 
   if (typeof uri === "string") {
-    const r = await getUriData(uri);
+    // const r = await getUriData(uri);
 
-    res.send(r);
+    res.send("r");
     return;
   }
 

@@ -1,43 +1,24 @@
-// @ts-nocheck
 import TelegramBot from "node-telegram-bot-api";
-import { botToken, inLocal, needTelegramBot } from "../config/constant";
-import { getUriObject } from "../helper/helper";
+import { Configuration, OpenAIApi } from "openai";
+import {
+  botToken,
+  inLocal,
+  needTelegramBot,
+  OpenAIKey,
+} from "../config/constant";
 
 const options: TelegramBot.ConstructorOptions = { polling: true };
+
+const configuration = new Configuration({
+  apiKey: OpenAIKey,
+});
+const openai = new OpenAIApi(configuration);
 
 if (inLocal && needTelegramBot) {
   options.request = {
     url: "",
     proxy: `http://localhost:10809`,
   };
-}
-
-export async function getUriData(uri: string) {
-  let result;
-  if (!uri || typeof uri !== "string") {
-    result = "uri not found1";
-    return;
-  }
-
-  try {
-    const uriObj = getUriObject(uri);
-    if (!uriObj.url) {
-      return "آدرس سرور معتبر نمی باشد!";
-    }
-    const url = `http://${uriObj.url}:733/v?uri=${uri}`;
-    console.log(url);
-    const data = await fetch(url).then((r) => {
-      let d = r.text();
-      console.log(d);
-      return d;
-    });
-
-    result = data;
-  } catch {
-    result = "Error";
-  }
-
-  return result;
 }
 
 // const agent = new SocksProxyAgent({
@@ -60,116 +41,51 @@ export function runTelegramBot() {
   }
   const bot = new TelegramBot(botToken, options);
 
-  bot.on("message", async (msg) => {
-    console.log("-START---------------");
-    console.log(msg);
-    if (
-      (msg.text &&
-        (msg.text.search("trojan") >= 0 || msg.text.search("vless") >= 0)) ||
-      msg.text.search("vmess") >= 0
-    ) {
-      let res = await getUriData(msg.text);
-      bot.sendMessage(msg.chat.id, res ? res : "Error! :(");
-    } else {
-      bot.sendMessage(
-        msg.chat.id,
-        "با سلام، به بات آزمایشی خوش آمدید، لطفا آدرس سرور را بفرستید :)"
-      );
-    }
-    console.log("-END-----------------");
+  // Set up a webhook to receive incoming messages
+  bot.on("message", async (msg: TelegramBot.Message) => {
+    // Send the message to OpenAI and receive a response
 
-    // bot.sendMessage(msg.chat.id, "hello");
+    console.log(msg);
+
+    console.log("--------------------");
+
+    const chat = await bot.getChat(msg.chat.id);
+    console.log("chat: ", chat);
+
+    // @ts-ignore
+    const response = await askOpenAI(msg.text);
+
+    // Send the OpenAI response back to the user
+    bot.sendMessage(msg.chat.id, response);
   });
 
-  // Matches /love
-  // bot.onText(/\/love/, function onLoveText(msg) {
-  //   const opts = {
-  //     reply_to_message_id: msg.message_id,
-  //     reply_markup: JSON.stringify({
-  //       keyboard: [
-  //         ["Yes, you are the bot of my life ❤"],
-  //         ["No, sorry there is another one..."],
-  //       ],
-  //     }),
-  //   };
+  async function askOpenAI(question: string): Promise<string> {
+    const test = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "user",
+          content: question,
+        },
+      ],
+      temperature: 0,
+      max_tokens: 1000,
+      top_p: 1,
+    });
 
-  //   // @ts-ignore
-  //   bot.sendMessage(msg.chat.id, "Do you love me?", opts);
-  // });
+    console.log(test.data);
 
-  // Matches /editable
-  // bot.onText(/\/editable/, function onEditableText(msg) {
-  //   const opts = {
-  //     reply_markup: {
-  //       inline_keyboard: [
-  //         [
-  //           {
-  //             text: "Edit Text",
-  //             // we shall check for this value when we listen
-  //             // for "callback_query"
-  //             callback_data: "edit",
-  //           },
-  //         ],
-  //       ],
-  //     },
-  //   };
+    // console.log(test.data.choices[0]);
 
-  //   // @ts-ignore
-  //   bot.sendMessage(msg.from.id, "Original Text", opts);
-  // });
+    // @ts-ignore
+    return test.data.choices[0].message?.content;
 
-  // Handle callback queries
-  // bot.on("callback_query", function onCallbackQuery(callbackQuery) {
-  //   const action = callbackQuery.data;
-  //   const msg = callbackQuery.message;
-  //   const opts = {
-  //     chat_id: msg?.chat.id,
-  //     message_id: msg?.message_id,
-  //   };
-  //   let text;
-
-  //   if (action === "edit") {
-  //     text = "Edited Text";
-  //   }
-
-  //   bot.editMessageText(text, opts);
-  // });
-
-  // bot.onText(/\/add/, async (msg) => {
-
-  //   bot.sendMessage(msg.chat.id, "salam");
-  //   console.log("--------------");
-  // });
-
-  // bot.onText(/\/get (.+)/, async (msg, match) => {
-  //   // console.log(match, "match");
-  //   console.log("--------------");
-
-  //   if (match && match[1]) {
-  //     let res = await FetchInboundById(match[1]);
-  //     bot.sendMessage(msg.chat.id, res);
-  //   }
-  //   console.log("--------------");
-  // });
-
-  // bot.onText(/\/list/, async (msg) => {
-  //   console.log("list");
-
-  //   let list;
-  //   try {
-  //     // await sequelize.authenticate();
-
-  //     list = await Inblounds.findAll();
-  //     // console.log(newInbound);
-  //   } catch (error) {
-  //     console.log(error);
-  //   } finally {
-  //     // await sequelize.co
-  //   }
-
-  //   bot.sendMessage(msg.chat.id, "list");
-  //   console.log("--------");
-  // });
+    // Parse the response and return the answer
+    const answer =
+      // @ts-ignore
+      completion?.data?.choices[0]?.text.trim() || "err, pls try again";
+    return answer;
+  }
 
   bot.on("polling_error", (msg) => console.log(msg));
 }
