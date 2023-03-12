@@ -36,55 +36,50 @@ if (inLocal && needTelegramBot) {
 export function runTelegramBot() {
   if (!botToken) {
     console.log("botToken not found!", botToken);
-
     return;
   }
+
   const bot = new TelegramBot(botToken, options);
 
-  // Set up a webhook to receive incoming messages
-  bot.on("message", async (msg: TelegramBot.Message) => {
-    // Send the message to OpenAI and receive a response
+  bot.on("text", async (msg: TelegramBot.Message) => {
+    let plsWaitMsg = await bot.sendMessage(msg.chat.id, "لطفا صبر کنید...");
 
-    console.log(msg);
-
-    console.log("--------------------");
-
-    const chat = await bot.getChat(msg.chat.id);
-    console.log("chat: ", chat);
+    console.log("username: ", msg.from?.username);
+    console.log("name: ", `${msg.from?.first_name} ${msg.from?.last_name}`);
+    console.log("user: ", msg.text);
 
     // @ts-ignore
-    const response = await askOpenAI(msg.text);
+    const response = await askOpenAI(msg.text).then((r) => {
+      bot.deleteMessage(msg.chat.id, plsWaitMsg.message_id.toString());
+      console.log("AI: ", r);
+      console.log("---------------------");
 
-    // Send the OpenAI response back to the user
+      return r;
+    });
+
     bot.sendMessage(msg.chat.id, response);
   });
 
   async function askOpenAI(question: string): Promise<string> {
-    const test = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "user",
-          content: question,
-        },
-      ],
-      temperature: 0,
-      max_tokens: 1000,
-      top_p: 1,
-    });
+    try {
+      const openaiChatResp = await openai.createChatCompletion({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "user",
+            content: question,
+          },
+        ],
+        temperature: 0,
+        max_tokens: 1000,
+        top_p: 1,
+      });
 
-    console.log(test.data);
-
-    // console.log(test.data.choices[0]);
-
-    // @ts-ignore
-    return test.data.choices[0].message?.content;
-
-    // Parse the response and return the answer
-    const answer =
       // @ts-ignore
-      completion?.data?.choices[0]?.text.trim() || "err, pls try again";
-    return answer;
+      return openaiChatResp.data.choices[0].message?.content;
+    } catch (e) {
+      return "خطا, لطفا مجددا تلاش کنید!";
+    }
   }
 
   bot.on("polling_error", (msg) => console.log(msg));
