@@ -1,4 +1,4 @@
-import { Sequelize, Model, DataTypes, Optional } from "sequelize";
+import { Sequelize, Model, DataTypes } from "sequelize";
 
 export type TMessageType = {
   role: "assistant" | "user" | "system";
@@ -8,7 +8,7 @@ export type TMessageType = {
 // Connect to the database
 export const sequelize = new Sequelize({
   dialect: "sqlite",
-  storage: "./chat.db",
+  storage: "./chat.sqlite",
 });
 
 interface UserAttributes {
@@ -20,16 +20,17 @@ interface UserAttributes {
   usedTokens: number;
 }
 
-interface UserCreationAttributes extends Optional<UserAttributes, "id"> {}
+interface UserCreationAttributes extends Partial<UserAttributes> {}
 
 interface MessageAttributes {
   id: number;
   content: TMessageType[];
   isFinished?: boolean;
   userId: number;
+  chatId: number;
 }
 
-interface MessageCreationAttributes extends Optional<MessageAttributes, "id"> {}
+interface MessageCreationAttributes extends Partial<MessageAttributes> {}
 
 // define models
 class User
@@ -49,7 +50,7 @@ class User
 User.init(
   {
     id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
@@ -85,9 +86,10 @@ class Message
   implements MessageAttributes
 {
   public id!: number;
-  public content!: object[];
+  public content!: TMessageType[];
   public isFinished!: boolean;
   public userId!: number;
+  public chatId!: number;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -96,22 +98,26 @@ class Message
 Message.init(
   {
     id: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
     content: {
       type: DataTypes.ARRAY(DataTypes.JSON),
-      allowNull: false,
-      defaultValue: [],
+      allowNull: true,
+      // defaultValue: [],
     },
     isFinished: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
     },
+    chatId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     userId: {
-      type: DataTypes.BIGINT.UNSIGNED,
+      type: DataTypes.INTEGER,
       allowNull: false,
       references: {
         model: "users",
@@ -126,8 +132,8 @@ Message.init(
 );
 
 // associations
-User.hasMany(Message, { as: "messages", foreignKey: "user_id" });
-Message.belongsTo(User, { as: "user", foreignKey: "user_id" });
+User.hasMany(Message, { as: "messages", foreignKey: "userId" });
+Message.belongsTo(User, { as: "user", foreignKey: "userId" });
 
 // sync models with database
 sequelize.sync();

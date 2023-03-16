@@ -3,16 +3,15 @@ import cors from "cors";
 import errorhandler from "errorhandler";
 import express, { Express, Request, Response } from "express";
 import morgan from "morgan";
-import {
-  ExampleVless,
-  inLocal,
-  isTestEnv,
-  needTelegramBot,
-  port,
-} from "./config/constant";
+import { isTestEnv, needTelegramBot, port } from "./config/constant";
 import { runTelegramBot } from "./controllers-bot/bot";
+import {
+  appendContent,
+  createNewContent,
+  createUser,
+  getNotFinishContent,
+} from "./controllers-bot/chat";
 import { FetchInboundById } from "./controllers-bot/inbound";
-import { getUriObject } from "./helper/helper";
 
 const app: Express = express();
 
@@ -32,6 +31,50 @@ app.use(express.static(__dirname + "/public"));
 if (isTestEnv) {
   app.use(errorhandler());
 }
+
+app.get("/", async (req: Request, res: Response) => {
+  res.send("سرور بالا می باشد");
+});
+
+app.get("/chatgpt/create-user", async (req: Request, res: Response) => {
+  const result = await createUser("hossein", "aghatabar", "whossein");
+
+  if (result) {
+    res.send("کاربر ایجاد شد");
+  } else {
+    res.send("خطا در ایجاد کاربر");
+  }
+});
+
+app.get("/chatgpt/create-new-chat", async (req: Request, res: Response) => {
+  const result = await createNewContent(12346, "hi, whow are u?", "whossein");
+
+  if (result) {
+    res.send("پیام ایجاد شد");
+  } else {
+    res.send("خطا در ایجاد پیام");
+  }
+});
+
+app.get("/chatgpt/append-old-chat", async (req: Request, res: Response) => {
+  const result = await appendContent(12346, "hi, whow are u?222333");
+
+  if (result) {
+    res.send("پیام ایجاد شد");
+  } else {
+    res.send("خطا در ایجاد پیام");
+  }
+});
+
+app.get("/chatgpt/get-chat", async (req: Request, res: Response) => {
+  const result = await getNotFinishContent(12346);
+
+  if (result) {
+    res.send("پیام دریافت شد");
+  } else {
+    res.send("خطا در دریافت پیام");
+  }
+});
 
 app.get("/v", async (req: Request, res: Response) => {
   const { uri } = req.query;
