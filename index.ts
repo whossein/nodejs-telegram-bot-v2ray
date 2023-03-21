@@ -37,17 +37,21 @@ app.get("/", async (req: Request, res: Response) => {
 });
 
 app.get("/chatgpt/create-user", async (req: Request, res: Response) => {
-  const result = await createUser("hossein", "aghatabar", "whossein");
-
-  if (result) {
-    res.send("کاربر ایجاد شد");
-  } else {
-    res.send("خطا در ایجاد کاربر");
-  }
+  // const result = await createUser("hossein", "aghatabar", "whossein");
+  // if (result) {
+  //   res.send("کاربر ایجاد شد");
+  // } else {
+  //   res.send("خطا در ایجاد کاربر");
+  // }
 });
 
 app.get("/chatgpt/create-new-chat", async (req: Request, res: Response) => {
-  const result = await createNewContent(12346, "hi, whow are u?", "whossein");
+  const result = await createNewContent(
+    12346,
+    "hi, whow are u?",
+    "whossein",
+    100
+  );
 
   if (result) {
     res.send("پیام ایجاد شد");

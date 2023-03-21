@@ -6,6 +6,14 @@ import {
   needTelegramBot,
   OpenAIKey,
 } from "../config/constant";
+import { TMessageType } from "../sequelize/chatgpt";
+import {
+  appendContent,
+  createNewContent,
+  createUser,
+  getNotFinishContent,
+  updateUsedToken,
+} from "./chat";
 
 const options: TelegramBot.ConstructorOptions = { polling: true };
 
@@ -42,43 +50,106 @@ export function runTelegramBot() {
   const bot = new TelegramBot(botToken, options);
 
   bot.on("text", async (msg: TelegramBot.Message) => {
-    let plsWaitMsg = await bot.sendMessage(msg.chat.id, "لطفا صبر کنید...");
+    const chatId = msg.chat.id;
+    const userName = msg.from?.username;
+
+    if (userName === undefined) {
+      bot.sendMessage(chatId, "لطفا برای کاربری خود username تعریف کنید!");
+
+      return;
+    }
+
+    if (msg.text === undefined || msg.text.length < 3) {
+      bot.sendMessage(chatId, "پیام بسیار کوتاه است");
+
+      return;
+    }
+
+    let plsWaitMsg = await bot.sendMessage(chatId, "لطفا صبر کنید...");
+
+    let result = "نتیجه ای یافت نشد! لطفا بعدا تلاش کنید";
+
+    const userContent = await getNotFinishContent(chatId);
+
+    let content: TMessageType[] = [
+      {
+        role: "user",
+        content: msg.text,
+      },
+    ];
+
+    if (userContent) {
+      // @ts-ignore
+      content = [...userContent.content, ...content];
+    }
+
+    console.log("content for send OpenAi: \n\r", content);
+
+    result = await askOpenAI(content).then(async (r) => {
+      bot.deleteMessage(chatId, plsWaitMsg.message_id.toString());
+
+      if (r.success === false) {
+        return "خطا در  ارتباط با سرور چت جیپیتی! لطفا بعدا تلاش کنید";
+      }
+
+      if (userContent) {
+        await appendContent(chatId, msg.text || "", "user");
+        await appendContent(chatId, r.content, "assistant");
+      } else {
+        await createNewContent(
+          chatId,
+          msg.text || "",
+          msg.from?.username || "",
+          0
+        );
+        await appendContent(chatId, r.content, "assistant");
+      }
+
+      console.log("AI: ", r);
+
+      await updateUsedToken(userName, r.usedToken);
+      return r.content;
+    });
 
     console.log("username: ", msg.from?.username);
     console.log("name: ", `${msg.from?.first_name} ${msg.from?.last_name}`);
-    console.log("user: ", msg.text);
+    console.log("result: ", result);
+    console.log("--------------------------------------");
 
-    // @ts-ignore
-    const response = await askOpenAI(msg.text).then((r) => {
-      bot.deleteMessage(msg.chat.id, plsWaitMsg.message_id.toString());
-      console.log("AI: ", r);
-      console.log("---------------------");
-
-      return r;
-    });
-
-    bot.sendMessage(msg.chat.id, response);
+    bot.sendMessage(chatId, result);
   });
 
-  async function askOpenAI(question: string): Promise<string> {
+  async function askOpenAI(question: TMessageType[]): Promise<{
+    usedToken: number;
+    content: string;
+    success: boolean;
+  }> {
     try {
       const openaiChatResp = await openai.createChatCompletion({
         model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "user",
-            content: question,
-          },
-        ],
+        messages: question,
         temperature: 0,
         max_tokens: 1000,
         top_p: 1,
       });
 
-      // @ts-ignore
-      return openaiChatResp.data.choices[0].message?.content;
+      // console.log(openaiChatResp.data.choices[0]);
+
+      return {
+        // @ts-ignore
+        content: openaiChatResp.data.choices[0].message?.content,
+        usedToken: openaiChatResp.data.usage?.total_tokens || 0,
+        success: true,
+      };
     } catch (e) {
-      return "خطا, لطفا مجددا تلاش کنید!";
+      console.log("openAi Error, question: \n\r");
+      console.log(question);
+
+      return {
+        content: "خطا, لطفا مجددا تلاش کنید!",
+        usedToken: 0,
+        success: false,
+      };
     }
   }
 

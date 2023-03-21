@@ -2,6 +2,7 @@ import { Message, sequelize, User } from "../sequelize/chatgpt";
 
 export async function createUser(
   userName: string,
+  usedToken: number,
   firstName?: string,
   lastName?: string
 ) {
@@ -15,6 +16,7 @@ export async function createUser(
       defaults: {
         firstName,
         lastName,
+        usedTokens: usedToken,
       },
     });
 
@@ -31,10 +33,68 @@ export async function createUser(
   }
 }
 
+export async function updateUsedToken(userName: string, usedToken: number) {
+  try {
+    await sequelize.authenticate();
+    await User.sync();
+    const user = await User.findOne({
+      where: {
+        userName: userName,
+      },
+    });
+
+    if (user) {
+      const updatedUser = await User.update(
+        {
+          usedTokens: user.usedTokens + usedToken,
+        },
+        {
+          where: {
+            userName,
+          },
+        }
+      );
+      return updatedUser;
+    }
+
+    // console.log("created", created);
+    // console.log("user created: \n\r", user.dataValues);
+
+    return null;
+  } catch (error) {
+    console.error(error);
+
+    return null;
+  } finally {
+    // await sequelize.close();
+  }
+}
+
+export async function getUserInfo(userName: string) {
+  try {
+    await sequelize.authenticate();
+    await User.sync();
+    const user = await User.findOne({
+      where: {
+        userName: userName,
+      },
+    });
+
+    return user?.dataValues;
+  } catch (error) {
+    console.error(error);
+
+    return null;
+  } finally {
+    // await sequelize.close();
+  }
+}
+
 export async function createNewContent(
   chatId: number,
   userMsg: string,
-  userName: string
+  userName: string,
+  usedToken: number
 ) {
   try {
     await sequelize.authenticate();
@@ -48,15 +108,13 @@ export async function createNewContent(
       }
     );
 
-    const user = await createUser(userName);
+    const user = await createUser(userName, usedToken);
+
+    // TODO: check user Tokens
 
     const msg = await Message.create({
       chatId,
       content: [
-        {
-          content: userMsg,
-          role: "user",
-        },
         {
           content: userMsg,
           role: "user",
@@ -87,6 +145,8 @@ export async function appendContent(
     await Message.sync();
 
     let msg = await getNotFinishContent(chatId);
+
+    // TODO: check user token
 
     if (msg && msg.content) {
       msg.content.push({
