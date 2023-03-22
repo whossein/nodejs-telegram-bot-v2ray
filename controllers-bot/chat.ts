@@ -17,6 +17,7 @@ export async function createUser(
         firstName,
         lastName,
         usedTokens: usedToken,
+        allowTokens: 6000,
       },
     });
 
@@ -47,6 +48,50 @@ export async function updateUsedToken(userName: string, usedToken: number) {
       const updatedUser = await User.update(
         {
           usedTokens: user.usedTokens + usedToken,
+        },
+        {
+          where: {
+            userName,
+          },
+        }
+      );
+      return updatedUser;
+    }
+
+    // console.log("created", created);
+    // console.log("user created: \n\r", user.dataValues);
+
+    return null;
+  } catch (error) {
+    console.error(error);
+
+    return null;
+  } finally {
+    // await sequelize.close();
+  }
+}
+
+export async function updateAllowTokens(
+  userName: string,
+  amountTokens: number
+) {
+  try {
+    await sequelize.authenticate();
+    await User.sync();
+    const user = await User.findOne({
+      where: {
+        userName: userName,
+      },
+    });
+
+    if (user) {
+      const updatedUser = await User.update(
+        {
+          usedTokens:
+            user.usedTokens > user.allowTokens
+              ? user.allowTokens
+              : user.usedTokens,
+          allowTokens: user.allowTokens + amountTokens,
         },
         {
           where: {
@@ -196,6 +241,33 @@ export async function getNotFinishContent(chatId: number) {
     }
 
     return msg?.dataValues;
+  } catch (error) {
+    console.error(error);
+
+    return null;
+  } finally {
+    // await sequelize.close();
+  }
+}
+
+export async function resetUserContent(chatId: number) {
+  try {
+    await sequelize.authenticate();
+    await Message.sync();
+
+    let msg = await Message.update(
+      {
+        isFinished: true,
+      },
+      {
+        where: {
+          chatId,
+          isFinished: false,
+        },
+      }
+    );
+
+    return msg;
   } catch (error) {
     console.error(error);
 
