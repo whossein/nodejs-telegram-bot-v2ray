@@ -85,7 +85,7 @@ const FetchInboundById = async function (uri: string) {
         settings = JSON.parse(item.settings);
         const clients = settings.clients;
 
-        if (clients.find((j: any) => j.password === uriObj.password)) {
+        if (clients?.find((j: any) => j.password === uriObj.password)) {
           clientObj = item;
         }
       }
@@ -94,7 +94,7 @@ const FetchInboundById = async function (uri: string) {
         settings = JSON.parse(item.settings);
         const clients = settings.clients;
 
-        if (clients.find((j: any) => j.id === uriObj.password)) {
+        if (clients?.find((j: any) => j.id === uriObj.password)) {
           clientObj = item;
         }
       }
