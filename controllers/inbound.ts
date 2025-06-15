@@ -1,4 +1,4 @@
-import { Inblounds, InboundModel, sequelize } from "../sequelize/models";
+import { Inbounds, InboundModel, sequelize } from "../sequelize/models";
 import moment from "moment";
 import {
   byteToUserFirendly,
@@ -7,6 +7,8 @@ import {
 } from "../helper/helper";
 import { v4 as uuidv4 } from "uuid";
 import { SocksProxyAgent } from "socks-proxy-agent";
+import { getRemainingByUri } from "./xui.controller";
+import { printInboundResult } from "../utils/printResult";
 
 const AddInblound = async (msg: any) => {
   let result = "error";
@@ -76,46 +78,56 @@ const FetchInboundById = async function (uri: string) {
     await sequelize.authenticate();
     await sequelize.sync();
 
-    let allData = await Inblounds.findAll();
+    const data = await getRemainingByUri(uri);
 
-    allData.forEach((item: InboundModel) => {
-      let settings;
-
-      if (uriObj.type === "trojan" && typeof item.settings === "string") {
-        settings = JSON.parse(item.settings);
-        const clients = settings.clients;
-
-        if (clients?.find((j: any) => j.password === uriObj.password)) {
-          clientObj = item;
-        }
-      }
-
-      if (uriObj.type === "vless" && typeof item.settings === "string") {
-        settings = JSON.parse(item.settings);
-        const clients = settings.clients;
-
-        if (clients?.find((j: any) => j.id === uriObj.password)) {
-          clientObj = item;
-        }
-      }
-
-      if (uriObj.type === "vmess" && typeof item.settings === "string") {
-        settings = JSON.parse(item.settings);
-        const clients = settings.clients;
-
-        if (clients.find((j: any) => j.id === uriObj.password)) {
-          clientObj = item;
-        }
-      }
-    });
-
-    if (!clientObj) {
-      result = "آدرس سروری یافت نشد!";
+    if (!data) {
+      result = "دیتای سرور موجود نیست";
     }
 
-    if (clientObj) {
-      result = printResult(clientObj);
-    }
+    const prettyData = printInboundResult(data as InboundModel);
+
+    result = prettyData;
+
+    // let allData = await Inbounds.findAll();
+
+    // allData.forEach((item: InboundModel) => {
+    //   let settings;
+
+    //   if (uriObj.type === "trojan" && typeof item.settings === "string") {
+    //     settings = JSON.parse(item.settings);
+    //     const clients = settings.clients;
+
+    //     if (clients?.find((j: any) => j.password === uriObj.password)) {
+    //       clientObj = item;
+    //     }
+    //   }
+
+    //   if (uriObj.type === "vless" && typeof item.settings === "string") {
+    //     settings = JSON.parse(item.settings);
+    //     const clients = settings.clients;
+
+    //     if (clients?.find((j: any) => j.id === uriObj.password)) {
+    //       clientObj = item;
+    //     }
+    //   }
+
+    //   if (uriObj.type === "vmess" && typeof item.settings === "string") {
+    //     settings = JSON.parse(item.settings);
+    //     const clients = settings.clients;
+
+    //     if (clients.find((j: any) => j.id === uriObj.password)) {
+    //       clientObj = item;
+    //     }
+    //   }
+    // });
+
+    // if (!clientObj) {
+    //   result = "آدرس سروری یافت نشد!";
+    // }
+
+    // if (clientObj) {
+    //   result = printResult(clientObj!); // Use non-null assertion since we check above
+    // }
   } catch (error) {
     console.log(error);
     return "Error! 500";
