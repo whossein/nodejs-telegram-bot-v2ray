@@ -5,3 +5,11 @@ yarn.lock
 ./yarn.lock
 ./package-lock.json
 # Keep environment variables out of version control
+.env
+.env.local
+.env.production
+
+# Secure configuration files
+config/secure/panel-configs.json
+config/secure/*.json
+!config/secure/*.template.json

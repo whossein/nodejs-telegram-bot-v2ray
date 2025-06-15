@@ -11,7 +11,10 @@
     "seed": "npx tsc && node dist/scripts/seed-data.js",
     "test:panels": "npx tsc && node dist/scripts/test-panel-configs.js",
     "db:init": "npx tsc && node -e \"require('./dist/sequelize/models').initializeDatabase().then(() => console.log('Database initialized')).catch(console.error)\"",
-    "test:sequelize": "npx tsc && node dist/scripts/test-sequelize.js"
+    "test:sequelize": "npx tsc && node dist/scripts/test-sequelize.js",
+    "config:setup": "./scripts/setup-json-config.sh",
+    "config:export": "npx tsc && node dist/scripts/export-panel-configs.js",
+    "config:test": "npx tsc && node dist/scripts/test-json-config.js"
   },
   "author": "hossein",
   "license": "ISC",

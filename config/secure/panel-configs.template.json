@@ -1,0 +1,39 @@
+{
+  "panelConfigs": [
+    {
+      "id": "panel_1",
+      "username": "PANEL_1_USERNAME",
+      "password": "PANEL_1_PASSWORD",
+      "baseUrl": "PANEL_1_BASE_URL",
+      "isActive": true,
+      "priority": 1,
+      "isHealthy": true,
+      "description": "Primary panel configuration"
+    },
+    {
+      "id": "panel_2",
+      "username": "PANEL_2_USERNAME",
+      "password": "PANEL_2_PASSWORD",
+      "baseUrl": "PANEL_2_BASE_URL",
+      "isActive": true,
+      "priority": 2,
+      "isHealthy": true,
+      "description": "Secondary panel configuration"
+    },
+    {
+      "id": "panel_3",
+      "username": "PANEL_3_USERNAME",
+      "password": "PANEL_3_PASSWORD",
+      "baseUrl": "PANEL_3_BASE_URL",
+      "isActive": true,
+      "priority": 3,
+      "isHealthy": true,
+      "description": "Tertiary panel configuration"
+    }
+  ],
+  "settings": {
+    "healthCheckInterval": 300000,
+    "maxRetries": 3,
+    "connectionTimeout": 30000
+  }
+}
